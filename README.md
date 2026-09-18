@@ -4,6 +4,10 @@
 
 The Lagos Property Listings API is a planned public REST API serving realistic Lagos property-market data. This step defines the resource model and data design before application implementation.
 
+## Technology
+
+The application foundation uses Node.js, Express, TypeScript, PostgreSQL, Prisma, Zod, and `@faker-js/faker`, managed with npm.
+
 ## Resource Model
 
 ```text
@@ -92,8 +96,24 @@ Later steps will implement:
 - consistent response/error envelopes
 - request validation
 - rate limiting
-- repeatable seed script
+- production seed operations beyond the controlled demo seed
 - public deployment
 - minimal external consumer
 
-These capabilities are not implemented in this design-only step.
+The API capabilities above are not implemented yet. The controlled repeatable demo seed is implemented in this data-foundation step.
+
+## Database Schema
+
+PostgreSQL and Prisma implement the three resources described above. Agency has many Agents, Agent belongs to one Agency and has many Properties, and Property belongs to one Agent. Each record uses a generated UUID primary key. Property prices are stored as whole minor currency units in PostgreSQL `BIGINT`, with `NGN` as the seeded currency.
+
+The Prisma enums map the documented values to database enum values: `PropertyType` contains `APARTMENT`, `DUPLEX`, `DETACHED_HOUSE`, `TERRACE`, and `LAND`; `ListingType` contains `SALE` and `RENT`; and `PropertyStatus` contains `AVAILABLE`, `UNDER_OFFER`, `SOLD`, and `RENTED`.
+
+## Initial Database Indexes
+
+The schema indexes Agent foreign keys by `agencyId` and Property foreign keys by `agentId` for relationship lookups. Property also has indexes on `area`, `propertyType`, `listingType`, `status`, `priceMinor`, and `createdAt` to support likely filtering, sorting, and range queries. Compound indexes on `(status, createdAt)` and `(listingType, priceMinor)` support common filtered ordering and price searches. Unique Agency slugs and Agent emails are indexed by their uniqueness constraints.
+
+## Seed Strategy
+
+The seed script is intended for the controlled demo database. Each run deletes Properties, then Agents, then Agencies inside a transaction before recreating exactly 200 Agencies, 600 Agents, and 2,000 Properties. This dependency-safe reset makes repeated runs produce the same row counts without hidden seed-only columns or duplicate rows; the tradeoff is that it replaces all data in the target database and should not be used against a database containing unrelated records.
+
+All seeded listings are synthetic demo data, not scraped or real listings. The data uses curated Yoruba name pools, Lagos area data, Faker-generated descriptions, contact details, websites, and dates.
