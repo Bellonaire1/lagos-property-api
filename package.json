@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "db:seed": "tsx prisma/seed.ts",
     "api:verify": "tsx scripts/verify-api.ts",
-    "api:verify-rate-limit": "tsx scripts/verify-rate-limit.ts"
+    "api:verify-rate-limit": "tsx scripts/verify-rate-limit.ts",
+    "live:smoke": "tsx scripts/live-smoke.ts",
+    "rate:proof": "tsx scripts/rate-limit-proof.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
