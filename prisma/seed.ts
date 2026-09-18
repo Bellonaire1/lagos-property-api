@@ -111,7 +111,7 @@ async function main(): Promise<void> {
         },
       });
     }
-  });
+  }, { maxWait: 120_000, timeout: 120_000 });
 
   const [agencyCount, agentCount, propertyCount] = await Promise.all([
     prisma.agency.count(),
