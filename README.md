@@ -89,18 +89,16 @@ The eventual seed script must be repeatable and must not create duplicates when 
 
 Later steps will implement:
 
-- versioned `/api/v1` routes
-- pagination
-- filtering
-- sorting
-- consistent response/error envelopes
-- request validation
-- rate limiting
+- full endpoint and curl documentation
 - production seed operations beyond the controlled demo seed
 - public deployment
 - minimal external consumer
 
-The API capabilities above are not implemented yet. The controlled repeatable demo seed is implemented in this data-foundation step.
+The controlled repeatable demo seed and API core are implemented. The remaining work above is not implemented yet.
+
+## API Implementation Status
+
+The public API is available under `/api/v1` with cursor pagination, filtering, sorting, validation, consistent response/error envelopes, IP rate limiting, and permissive development CORS. Property `priceMinor` is serialized as a decimal string in JSON so PostgreSQL `BIGINT` precision is preserved; it is never silently converted to a JavaScript number. Authentication is intentionally not included in this assessment step.
 
 ## Database Schema
 

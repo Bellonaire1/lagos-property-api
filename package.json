@@ -3,25 +3,30 @@
   "version": "1.0.0",
   "private": true,
   "description": "A public REST API for synthetic Lagos property-market data.",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "api:verify": "tsx scripts/verify-api.ts",
+    "api:verify-rate-limit": "tsx scripts/verify-rate-limit.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
     "zod": "^4.1.5"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.9.0",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
     "@types/node": "^24.3.0",
     "prisma": "^6.16.1",
