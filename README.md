@@ -126,9 +126,13 @@ npm start
 
 Local base URL: `http://localhost:4000/api/v1`
 
-Production base URL: `TO BE ADDED AFTER DEPLOYMENT`
+Production base URL: `https://lagos-property-api.vercel.app`
 
-The production URL is intentionally not claimed yet.
+Live paginated request:
+
+```bash
+curl "https://lagos-property-api.vercel.app/api/v1/properties?limit=3"
+```
 
 ## API Implementation Status
 
