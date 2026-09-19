@@ -22,3 +22,5 @@ app.use(rateLimit({
 app.use(`/api/${API_VERSION}`, apiV1Router);
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+export default app;
