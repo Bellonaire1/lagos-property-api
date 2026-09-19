@@ -1,5 +1,6 @@
+import { createHash } from 'node:crypto';
 import { faker } from '@faker-js/faker';
-import { PrismaClient, ListingType, PropertyStatus, PropertyType } from '@prisma/client';
+import { ListingType, Prisma, PrismaClient, PropertyStatus, PropertyType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -34,6 +35,12 @@ function slugify(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+function seedUuid(kind: string, index: number): string {
+  const hash = createHash('sha256').update(`lagos-property-api:${kind}:${index}`).digest('hex');
+  const variant = ((Number.parseInt(hash[16], 16) & 0x03) | 0x08).toString(16);
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${variant}${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
+
 function priceInMinorUnits(listingType: ListingType, propertyType: PropertyType): bigint {
   const baseNaira = listingType === ListingType.RENT
     ? faker.number.int({ min: 2_500_000, max: 18_000_000 })
@@ -44,74 +51,85 @@ function priceInMinorUnits(listingType: ListingType, propertyType: PropertyType)
   return BigInt(baseNaira) * 100n;
 }
 
-async function main(): Promise<void> {
+function buildSeedRecords(): {
+  agencies: Array<Prisma.AgencyCreateManyInput & { id: string }>;
+  agents: Array<Prisma.AgentCreateManyInput & { id: string }>;
+  properties: Array<Prisma.PropertyCreateManyInput & { id: string }>;
+} {
   faker.seed(20260918);
 
-  await prisma.$transaction(async (transaction) => {
-    await transaction.property.deleteMany();
-    await transaction.agent.deleteMany();
-    await transaction.agency.deleteMany();
+  const agencies: Array<Prisma.AgencyCreateManyInput & { id: string }> = [];
+  for (let index = 0; index < 200; index += 1) {
+    const name = `${pick(agencyPrefixes)} ${pick(agencySuffixes)} ${String(index + 1).padStart(3, '0')}`;
+    agencies.push({
+      id: seedUuid('agency', index),
+      name,
+      slug: slugify(name),
+      email: `contact${index + 1}@${slugify(name)}.example.com`,
+      phone: `+234 80${faker.number.int({ min: 10000000, max: 99999999 })}`,
+      officeArea: pick(areas),
+      website: `https://www.${slugify(name)}.example.com`,
+      createdAt: faker.date.past({ years: 4 }),
+    });
+  }
 
-    const agencies = [];
-    for (let index = 0; index < 200; index += 1) {
-      const name = `${pick(agencyPrefixes)} ${pick(agencySuffixes)} ${String(index + 1).padStart(3, '0')}`;
-      agencies.push(await transaction.agency.create({
-        data: {
-          name,
-          slug: slugify(name),
-          email: `contact${index + 1}@${slugify(name)}.example.com`,
-          phone: `+234 80${faker.number.int({ min: 10000000, max: 99999999 })}`,
-          officeArea: pick(areas),
-          website: `https://www.${slugify(name)}.example.com`,
-          createdAt: faker.date.past({ years: 4 }),
-        },
-      }));
-    }
+  const agents: Array<Prisma.AgentCreateManyInput & { id: string }> = [];
+  for (let index = 0; index < 600; index += 1) {
+    const firstName = pick(firstNames);
+    const lastName = pick(surnames);
+    agents.push({
+      id: seedUuid('agent', index),
+      agencyId: agencies[index % agencies.length]!.id,
+      firstName,
+      lastName,
+      email: `${slugify(firstName)}.${slugify(lastName)}.${index + 1}@agents.example.com`,
+      phone: `+234 81${faker.number.int({ min: 10000000, max: 99999999 })}`,
+      yearsExperience: faker.number.int({ min: 1, max: 24 }),
+      isVerified: faker.datatype.boolean({ probability: 0.78 }),
+      createdAt: faker.date.past({ years: 3 }),
+    });
+  }
 
-    const agents = [];
-    for (let index = 0; index < 600; index += 1) {
-      const firstName = pick(firstNames);
-      const lastName = pick(surnames);
-      agents.push(await transaction.agent.create({
-        data: {
-          agencyId: agencies[index % agencies.length].id,
-          firstName,
-          lastName,
-          email: `${slugify(firstName)}.${slugify(lastName)}.${index + 1}@agents.example.com`,
-          phone: `+234 81${faker.number.int({ min: 10000000, max: 99999999 })}`,
-          yearsExperience: faker.number.int({ min: 1, max: 24 }),
-          isVerified: faker.datatype.boolean({ probability: 0.78 }),
-          createdAt: faker.date.past({ years: 3 }),
-        },
-      }));
-    }
+  const properties: Array<Prisma.PropertyCreateManyInput & { id: string }> = [];
+  for (let index = 0; index < 2_000; index += 1) {
+    const propertyType = pick(propertyTypes);
+    const listingType = faker.datatype.boolean({ probability: 0.58 }) ? ListingType.SALE : ListingType.RENT;
+    const area = pick(areas);
+    const label = propertyType === PropertyType.LAND ? 'Residential Land' : propertyType.toLowerCase().replace('_', ' ');
+    const bedrooms = propertyType === PropertyType.LAND ? null : faker.number.int({ min: 1, max: 7 });
+    const bathrooms = propertyType === PropertyType.LAND ? null : faker.number.int({ min: 1, max: 6 });
 
-    for (let index = 0; index < 2_000; index += 1) {
-      const propertyType = pick(propertyTypes);
-      const listingType = faker.datatype.boolean({ probability: 0.58 }) ? ListingType.SALE : ListingType.RENT;
-      const area = pick(areas);
-      const label = propertyType === PropertyType.LAND ? 'Residential Land' : propertyType.toLowerCase().replace('_', ' ');
-      const bedrooms = propertyType === PropertyType.LAND ? null : faker.number.int({ min: 1, max: 7 });
-      const bathrooms = propertyType === PropertyType.LAND ? null : faker.number.int({ min: 1, max: 6 });
+    properties.push({
+      id: seedUuid('property', index),
+      agentId: agents[index % agents.length]!.id,
+      title: `${label} in ${area}`,
+      description: `${faker.lorem.sentences({ min: 2, max: 4 })} Located in ${area}, Lagos, with convenient access to established amenities and transport links.`,
+      propertyType,
+      listingType,
+      area,
+      priceMinor: priceInMinorUnits(listingType, propertyType),
+      currency: 'NGN',
+      bedrooms,
+      bathrooms,
+      status: listingType === ListingType.RENT ? pick([PropertyStatus.AVAILABLE, PropertyStatus.AVAILABLE, PropertyStatus.UNDER_OFFER, PropertyStatus.RENTED]) : pick(statuses),
+      createdAt: faker.date.past({ years: 2 }),
+    });
+  }
 
-      await transaction.property.create({
-        data: {
-          agentId: agents[index % agents.length].id,
-          title: `${label} in ${area}`,
-          description: `${faker.lorem.sentences({ min: 2, max: 4 })} Located in ${area}, Lagos, with convenient access to established amenities and transport links.`,
-          propertyType,
-          listingType,
-          area,
-          priceMinor: priceInMinorUnits(listingType, propertyType),
-          currency: 'NGN',
-          bedrooms,
-          bathrooms,
-          status: listingType === ListingType.RENT ? pick([PropertyStatus.AVAILABLE, PropertyStatus.AVAILABLE, PropertyStatus.UNDER_OFFER, PropertyStatus.RENTED]) : pick(statuses),
-          createdAt: faker.date.past({ years: 2 }),
-        },
-      });
-    }
-  }, { maxWait: 120_000, timeout: 120_000 });
+  return { agencies, agents, properties };
+}
+
+async function main(): Promise<void> {
+  const { agencies, agents, properties } = buildSeedRecords();
+
+  await prisma.$transaction([
+    prisma.property.deleteMany(),
+    prisma.agent.deleteMany(),
+    prisma.agency.deleteMany(),
+    prisma.agency.createMany({ data: agencies }),
+    prisma.agent.createMany({ data: agents }),
+    prisma.property.createMany({ data: properties }),
+  ]);
 
   const [agencyCount, agentCount, propertyCount] = await Promise.all([
     prisma.agency.count(),
