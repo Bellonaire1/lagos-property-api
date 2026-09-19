@@ -454,3 +454,15 @@ The schema indexes Agent foreign keys by `agencyId` and Property foreign keys by
 The seed script is intended for the controlled demo database. Each run generates all 200 Agencies, 600 Agents, and 2,000 Properties in application memory first, including deterministic UUIDs and in-memory foreign-key relationships. It then performs a short dependency-safe Prisma transaction with ordered deletes and bulk `createMany` inserts. This minimizes remote PostgreSQL round trips and avoids keeping an interactive transaction open across thousands of individual writes. Repeated runs produce the same row counts without hidden seed-only columns or duplicate rows; the tradeoff is that it replaces all data in the target database and should not be used against a database containing unrelated records.
 
 All seeded listings are synthetic demo data, not scraped or real listings. The data uses curated Yoruba name pools, Lagos area data, Faker-generated descriptions, contact details, websites, and dates.
+
+## Consumer Application
+
+The minimal vanilla JavaScript consumer lives in `consumer/`. It calls the live Vercel API at `https://lagos-property-api.vercel.app/api/v1` and never falls back to localhost.
+
+Run it locally with a lightweight static server:
+
+```bash
+npx serve consumer
+```
+
+Open the local URL printed by the static server. The page requests nine properties at a time, supports area and property-type filters, and maps the three sort choices to the API's `createdAt` or `price` sorting. Applying filters resets the cursor to the first page; `Next Page` passes the API's opaque `meta.nextCursor` unchanged. Loading, empty, and retryable error states are visible in the page.

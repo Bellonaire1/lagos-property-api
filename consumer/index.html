@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Live Lagos property listings." />
+    <title>Lagos Property Listings</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="./" aria-label="Lagos Property Listings home">
+          <span class="brand-mark" aria-hidden="true">LP</span>
+          <span>Lagos Property Listings</span>
+        </a>
+        <span class="live-pill"><span class="live-dot" aria-hidden="true"></span>Live market data</span>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <p class="eyebrow">LAGOS / PROPERTY MARKET</p>
+        <h1 id="page-title">Find your next place<br /><em>in the city.</em></h1>
+        <p class="hero-copy">Live data from the Lagos Property Listings API</p>
+      </section>
+
+      <section class="filter-panel" aria-label="Property filters">
+        <div class="filter-field">
+          <label for="area">Area</label>
+          <select id="area">
+            <option value="">All areas</option>
+            <option>Ikeja GRA</option>
+            <option>Lekki Phase 1</option>
+            <option>Ikoyi</option>
+            <option>Victoria Island</option>
+            <option>Yaba</option>
+            <option>Surulere</option>
+            <option>Ajah</option>
+            <option>Magodo</option>
+            <option>Maryland</option>
+            <option>Gbagada</option>
+            <option>Ogudu</option>
+            <option>Chevron</option>
+            <option>Sangotedo</option>
+            <option>Oniru</option>
+            <option>Banana Island</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="property-type">Property type</label>
+          <select id="property-type">
+            <option value="">All types</option>
+            <option value="APARTMENT">APARTMENT</option>
+            <option value="DUPLEX">DUPLEX</option>
+            <option value="DETACHED_HOUSE">DETACHED_HOUSE</option>
+            <option value="TERRACE">TERRACE</option>
+            <option value="LAND">LAND</option>
+          </select>
+        </div>
+        <div class="filter-field">
+          <label for="sort">Sort by</label>
+          <select id="sort">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+        <button class="apply-button" id="apply-filters" type="button">Apply filters <span aria-hidden="true">&rarr;</span></button>
+      </section>
+
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow">AVAILABLE LISTINGS</p>
+          <h2 id="results-title">Properties in Lagos</h2>
+        </div>
+        <p class="result-count" id="result-count" aria-live="polite"></p>
+      </div>
+
+      <section id="status" class="status-panel" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Loading properties...</p>
+      </section>
+
+      <section id="property-grid" class="property-grid" aria-label="Property listings"></section>
+
+      <div class="pagination-row">
+        <button class="next-button" id="next-page" type="button" hidden>Next page <span aria-hidden="true">&rarr;</span></button>
+      </div>
+
+      <footer class="site-footer">
+        <span>Data source:</span>
+        <a href="https://lagos-property-api.vercel.app" target="_blank" rel="noreferrer">https://lagos-property-api.vercel.app</a>
+      </footer>
+    </main>
+  </body>
+</html>
